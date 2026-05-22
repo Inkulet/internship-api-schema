@@ -18,7 +18,7 @@ module Authenticatable
 
     stored = @current_student.auth_token.to_s
     return render_unauthorized if stored.empty?
-    return render_unauthorized unless ActiveSupport::SecurityUtils.secure_compare(token, stored)
+    render_unauthorized unless ActiveSupport::SecurityUtils.secure_compare(token, stored)
   end
 
   def bearer_token

@@ -6,7 +6,7 @@ class SchoolClass < ApplicationRecord
 
   validates :number, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :letter, presence: true
-  validates :letter, uniqueness: { scope: [:school_id, :number] }
+  validates :letter, uniqueness: { scope: [ :school_id, :number ] }
 
   def to_api_hash
     {
