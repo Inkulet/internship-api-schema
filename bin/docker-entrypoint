@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+# Удаляем stale pid-файл Puma, если контейнер был убит без graceful shutdown.
+rm -f /app/tmp/pids/server.pid
+
+# Создаём/мигрируем БД и (если миграций ещё не было) применяем seeds.
+# db:prepare сам решает: создать, загрузить schema.rb или прогнать миграции.
+bundle exec rails db:prepare
+
+exec "$@"
