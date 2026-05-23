@@ -8,6 +8,9 @@ class Student < ApplicationRecord
              inverse_of: :students
 
   validates :first_name, :last_name, :surname, presence: true
+  validates :class_id, :school_id,
+            numericality: { only_integer: true, greater_than: 0 },
+            allow_nil: true
   validate  :school_matches_class
 
   after_create :assign_auth_token
@@ -41,6 +44,16 @@ class Student < ApplicationRecord
   end
 
   def build_auth_token
-    Digest::SHA256.hexdigest("#{id}#{ENV.fetch('SECRET_SALT', 'dev-salt')}")
+    Digest::SHA256.hexdigest("#{id}#{secret_salt}")
+  end
+
+  def secret_salt
+    ENV.fetch("SECRET_SALT") do
+      if Rails.env.development? || Rails.env.test?
+        "dev-salt"
+      else
+        raise KeyError, "SECRET_SALT is not set (требуется в production)"
+      end
+    end
   end
 end

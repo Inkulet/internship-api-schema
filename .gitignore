@@ -57,3 +57,6 @@ npm-debug.log*
 # Ignore Spring files.
 /spring.log
 /spring/*.pid
+
+# Local-only: исходное ТЗ (нужно при разработке, но не должно лежать в репо).
+/tz/
