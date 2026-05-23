@@ -16,6 +16,8 @@ class ApplicationController < ActionController::API
     render json: { error: "Некорректная авторизация" }, status: :unauthorized
   end
 
+  # Семантически 405 — это «Method Not Allowed», но openapi предписывает
+  # именно его для «Invalid input» на POST /students. Следуем за спецификацией.
   def render_invalid_input(exception = nil)
     body = { error: "Invalid input" }
     body[:details] = Array(exception_details(exception)) if exception

@@ -64,7 +64,7 @@ curl http://localhost:3000/schools/1/classes/1/students
 
 Три модели: `School`, `SchoolClass` (таблица называется `classes`, потому что `Class` в Ruby занят), `Student`. У классов есть колонка `students_count` с counter_cache — `GET /schools/:id/classes` не делает COUNT по каждому классу, число берётся из колонки и обновляется при создании/удалении ученика.
 
-Токен — это `sha256(student_id + SECRET_SALT)`. Соль читается из `.env`. Меняете соль — старые токены перестают работать, это нормально.
+Токен — это `sha256(student_id + SECRET_SALT)`. Соль читается в порядке `ENV → Rails credentials → "dev-salt" в dev/test → KeyError в production`. Меняете соль — старые токены перестают работать, это нормально.
 
 Бизнес-инварианты живут на уровне модели:
 - ученик не может оказаться в классе чужой школы;
@@ -72,6 +72,28 @@ curl http://localhost:3000/schools/1/classes/1/students
 - `students_count` всегда соответствует фактическому числу учеников (counter_cache + транзакции).
 
 Авторизация вынесена в concern `Authenticatable` и подключается к `StudentsController#destroy` через `before_action`. Сравнение токенов — через `secure_compare`, чтобы не светить байты через тайминг.
+
+Тесты — RSpec, 60+ примеров: модели (валидации, ассоциации, counter_cache, генерация токена) и request specs на все 4 эндпоинта (happy paths + ошибки 400/401/405 + пагинация).
+
+## Решения и компромиссы
+
+Места, где я сознательно выбрал один путь, а не другой:
+
+**HTTP 405 на невалидный POST.** Семантически это «Method Not Allowed», в реальном проекте я бы взял 422 или 400. Но в openapi прописано «405 Invalid input» — следую за документом, чтобы не отклоняться от спеки.
+
+**Pagination опциональная.** Эндпоинты-списки поддерживают `?page=` и `?per_page=`, но без них отдают весь scope. Это сохраняет 100% совместимость с openapi-схемой (там пагинации нет вовсе) и одновременно даёт реальный механизм на случай больших классов.
+
+**`SchoolClass`, а не `Class`.** Имя `Class` зарезервировано в Ruby. Модель — `SchoolClass` с явным `self.table_name = "classes"`, чтобы таблица в БД и URL в API назывались одинаково (`/schools/:id/classes`).
+
+**`auth_token` генерируется в `after_create`, не в `before_create`.** Хэш привязан к `id`, а `id` известен только после `INSERT`. Альтернатива — генерировать `SecureRandom`-токен без привязки к id, но openapi прямо говорит `sha256(user_id + secret_salt)`.
+
+**`Student` хранит `school_id` явно, а не только через `class.school_id`.** Денормализация — openapi-схема `Student` требует оба поля. Согласованность гарантирована валидацией `school_matches_class`.
+
+**400 на «студент не найден» при DELETE, а не 404.** В openapi для `DELETE /students/{user_id}` определены только 400 и 401. Мапим «не найден» в 400 «некорректный id». Это лёгкая утечка существования id (400 vs 401), но контракт диктует именно так.
+
+**Trim Rails.** В `config/application.rb` загружаются только `active_model`, `active_job`, `active_record`, `action_controller`. ActionMailer/Cable/Storage/Text/Mailbox/View не нужны, удалены. Boot немного быстрее, образ чуть меньше.
+
+**Локализация на русский (ru).** EdTech-приложение, ошибки валидации должны быть на русском. Перевод вынесен в `config/locales/ru.yml`.
 
 ## Если что-то пошло не так
 

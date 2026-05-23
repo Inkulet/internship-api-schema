@@ -1,0 +1,63 @@
+### Файл для VS Code REST Client (https://marketplace.visualstudio.com/items?itemName=humao.rest-client).
+### Открой в VS Code, нажми "Send Request" над любым блоком.
+### Все ID соответствуют свежим seed-данным после `docker compose up`.
+
+@host = http://localhost:3000
+
+### Healthcheck
+GET {{host}}/up
+
+### Список классов школы №1
+GET {{host}}/schools/1/classes
+
+### Список классов с пагинацией (только 2 класса на страницу)
+GET {{host}}/schools/1/classes?page=1&per_page=2
+
+### Ученики 1А класса (school_id=1, class_id=1)
+GET {{host}}/schools/1/classes/1/students
+
+### Создать студента — в ответе ищи заголовок X-Auth-Token
+# @name createStudent
+POST {{host}}/students
+Content-Type: application/json
+
+{
+  "first_name": "Новый",
+  "last_name":  "Студент",
+  "surname":    "Тестович",
+  "class_id":   1,
+  "school_id":  1
+}
+
+### Удалить только что созданного студента (REST Client подставит id и токен из createStudent)
+DELETE {{host}}/students/{{createStudent.response.body.id}}
+Authorization: Bearer {{createStudent.response.headers.X-Auth-Token}}
+
+### --- Ошибки ---
+
+### 405 — пустое тело
+POST {{host}}/students
+Content-Type: application/json
+
+{}
+
+### 405 — битый JSON
+POST {{host}}/students
+Content-Type: application/json
+
+{not a json
+
+### 401 — DELETE без авторизации
+DELETE {{host}}/students/1
+
+### 401 — DELETE с неправильным токеном
+DELETE {{host}}/students/1
+Authorization: Bearer wrong-token-value
+
+### 400 — DELETE с нечисловым id
+DELETE {{host}}/students/abc
+Authorization: Bearer any-token
+
+### 400 — DELETE с несуществующим id
+DELETE {{host}}/students/999999
+Authorization: Bearer any-token

@@ -1,0 +1,62 @@
+ru:
+  # Локализация сообщений ActiveModel/ActiveRecord на русский.
+  # Используется автоматически (см. config.i18n.default_locale в application.rb).
+  errors:
+    format: "%{attribute} %{message}"
+    messages:
+      blank: "не может быть пустым"
+      taken: "уже занят"
+      not_a_number: "не является числом"
+      not_an_integer: "не является целым числом"
+      greater_than: "должно быть больше %{count}"
+      invalid: "имеет неверное значение"
+
+  activerecord:
+    errors:
+      messages:
+        # Дефолтное сообщение belongs_to (`must exist`).
+        # Нейтральная форма — работает для любого рода.
+        required: "не указан(а)"
+        record_invalid: "Проверка не пройдена: %{errors}"
+      models:
+        student:
+          attributes:
+            # Кастомное сообщение для валидации school_matches_class.
+            class_id:
+              foreign_class: "не принадлежит указанной школе"
+            # Согласуем род: "Класс не указан", "Школа не указана".
+            school_id:
+              required: "не указана"
+            school:
+              required: "не указана"
+            class:
+              required: "не указан"
+            school_class:
+              required: "не указан"
+            first_name:
+              blank: "не может быть пустым"
+            last_name:
+              blank: "не может быть пустой"
+            surname:
+              blank: "не может быть пустым"
+
+    attributes:
+      school:
+        name: "Название школы"
+      school_class:
+        number: "Номер класса"
+        letter: "Буква класса"
+        school: "Школа"
+      student:
+        first_name: "Имя"
+        last_name: "Фамилия"
+        surname: "Отчество"
+        school: "Школа"
+        school_class: "Класс"
+        class_id: "Класс"
+        school_id: "Школа"
+
+    models:
+      school: "Школа"
+      school_class: "Класс"
+      student: "Ученик"

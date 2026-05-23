@@ -33,5 +33,15 @@ module App
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # Локализация по умолчанию — русская. Сообщения об ошибках валидации,
+    # имена атрибутов и моделей берутся из config/locales/ru.yml.
+    config.i18n.default_locale = :ru
+    config.i18n.available_locales = [ :ru, :en ]
+
+    # Если клиент пришлёт неизвестное поле — оно молча отбрасывается,
+    # но в логе появится предупреждение. Помогает ловить опечатки
+    # в payload (например, "fistname" вместо "first_name").
+    config.action_controller.action_on_unpermitted_parameters = :log
   end
 end
